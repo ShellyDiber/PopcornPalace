@@ -1,22 +1,4 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { ShowtimeService } from './showtime.service';
 
-// describe('ShowtimeService', () => {
-//   let service: ShowtimeService;
-
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [ShowtimeService],
-//     }).compile();
-
-//     service = module.get<ShowtimeService>(ShowtimeService);
-//   });
-
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//   });
-// });
-// showtime.service.spec.ts
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -109,6 +91,7 @@ describe('ShowtimeService', () => {
     movieRepo.findOneBy.mockResolvedValue(movie);
 
     const qb: any = {
+      leftJoin: jest.fn().mockReturnThis(),
       where: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       getOne: jest.fn().mockResolvedValue({ id: 99 }),
@@ -144,12 +127,33 @@ describe('ShowtimeService', () => {
   });
 
   it('should delete a showtime', async () => {
+    const qb: any = {
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null), // no bookings
+    };
+  
+    mockShowtimeRepo.createQueryBuilder.mockReturnValue(qb);
+    mockShowtimeRepo.findOne.mockResolvedValue({ id: 1, bookings: [] } as Showtime);
     mockShowtimeRepo.delete.mockResolvedValue({ affected: 1 });
+  
     await expect(service.remove(1)).resolves.toBeUndefined();
   });
-
+  
   it('should throw if delete fails', async () => {
+    const qb: any = {
+      leftJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(null), // no bookings
+    };
+  
+    mockShowtimeRepo.createQueryBuilder.mockReturnValue(qb);
+    mockShowtimeRepo.findOne.mockResolvedValue({ id: 999, bookings: [] } as Showtime);
     mockShowtimeRepo.delete.mockResolvedValue({ affected: 0 });
+  
     await expect(service.remove(999)).rejects.toThrow(NotFoundException);
   });
+  
 });
